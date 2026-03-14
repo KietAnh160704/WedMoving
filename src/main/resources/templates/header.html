@@ -1,48 +1,97 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <div th:fragment="moving-header">
-    <nav style="background: #000; padding: 15px 5%; display: flex; align-items: center; gap: 30px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #333;">
-        <a href="/" style="color: #e50914; font-size: 26px; font-weight: bold; text-decoration: none; transition: 0.3s;" onmouseover="this.style.textShadow='0 0 10px #e50914'" onmouseout="this.style.textShadow='none'">MOVING</a>
+    <nav class="navbar navbar-expand-lg sticky-top navbar-dark shadow-lg" style="background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #333;">
+        <div class="container-fluid px-lg-5">
+            <a class="navbar-brand fw-bold fs-3 text-danger" href="/"
+               style="letter-spacing: -1px; transition: 0.3s;"
+               onmouseover="this.style.textShadow='0 0 15px #e50914'"
+               onmouseout="this.style.textShadow='none'">MOVING</a>
 
-        <div style="display: flex; gap: 25px; align-items: center;">
-            <a href="/filter/danh-sach/phim-moi" style="color: #ccc; text-decoration: none; font-size: 14px;">Phim Mới</a>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMoving" aria-controls="navbarMoving" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-            <div class="dropdown">
-                <span style="color: #ccc; cursor: pointer; font-size: 14px;">Thể Loại ▾</span>
-                <div class="dropdown-content">
-                    <a th:each="g : ${allGenres}" th:href="@{/filter/the-loai/{slug}(slug=${g.slug})}" th:text="${g.name}"></a>
-                </div>
-            </div>
+            <div class="collapse navbar-collapse" id="navbarMoving">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-lg-3 mt-3 mt-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-light-gray fw-medium" href="/filter/danh-sach/phim-moi">Phim Mới</a>
+                    </li>
 
-            <div class="dropdown">
-                <span style="color: #ccc; cursor: pointer; font-size: 14px;">Quốc Gia ▾</span>
-                <div class="dropdown-content">
-                    <a th:each="c : ${allCountries}" th:href="@{/filter/quoc-gia/{slug}(slug=${c.slug})}" th:text="${c.name}"></a>
-                </div>
+                    <li class="nav-item dropdown dropdown-mega">
+                        <a class="nav-link dropdown-toggle text-light-gray fw-medium" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Thể Loại
+                        </a>
+                        <div class="dropdown-menu border-0 shadow-lg p-3">
+                            <div class="row g-1 row-cols-2 row-cols-md-3" style="min-width: 320px; max-width: 500px;">
+                                <div class="col" th:each="g : ${allGenres}">
+                                    <a class="dropdown-item rounded-2 py-2" th:href="@{/filter/the-loai/{slug}(slug=${g.slug})}" th:text="${g.name}"></a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li class="nav-item dropdown dropdown-mega">
+                        <a class="nav-link dropdown-toggle text-light-gray fw-medium" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Quốc Gia
+                        </a>
+                        <div class="dropdown-menu border-0 shadow-lg p-3">
+                            <div class="row g-1 row-cols-2 row-cols-md-3" style="min-width: 320px; max-width: 450px;">
+                                <div class="col" th:each="c : ${allCountries}">
+                                    <a class="dropdown-item rounded-2 py-2" th:href="@{/filter/quoc-gia/{slug}(slug=${c.slug})}" th:text="${c.name}"></a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+
+                <form action="/search" method="get" class="d-flex position-relative mt-3 mt-lg-0">
+                    <input class="form-control rounded-pill border-secondary bg-dark text-white px-4 py-2"
+                           type="search" name="keyword" placeholder="Tìm tên phim..." aria-label="Search"
+                           style="width: 100%; min-width: 250px; font-size: 14px;">
+                    <button class="btn position-absolute end-0 top-0 h-100 text-secondary border-0 px-3" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
             </div>
         </div>
-
-        <form action="/search" method="get" style="margin-left: auto; display: flex; gap: 10px;">
-            <input type="text" name="keyword" placeholder="Tìm tên phim..."
-                   style="padding: 8px 15px; border-radius: 20px; border: 1px solid #444; background: #222; color: white; outline: none; width: 200px;">
-        </form>
     </nav>
 
     <style>
-        .dropdown { position: relative; }
-        .dropdown-content {
-            display: none; position: absolute; background: #1a1a1a;
-            width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            z-index: 9999; padding: 15px; border-radius: 8px; top: 100%; left: 0;
-            grid-template-columns: repeat(3, 1fr); gap: 10px;
+        .text-light-gray { color: #ccc !important; font-size: 14.5px; transition: 0.3s; }
+        .text-light-gray:hover { color: #e50914 !important; }
+
+        /* Dropdown Menu Style */
+        .dropdown-menu {
+            background: #181818 !important;
+            margin-top: 10px !important;
         }
-        .dropdown:hover .dropdown-content { display: grid; }
-        .dropdown-content a { color: #ccc !important; padding: 8px; text-decoration: none; font-size: 13px; border-radius: 4px; transition: 0.2s; }
-        .dropdown-content a:hover { background-color: #e50914 !important; color: white !important; }
-        nav a:hover { color: #e50914 !important; transition: 0.3s; }
-        @media (max-width: 768px) {
-            .dropdown-content { width: 280px; grid-template-columns: repeat(2, 1fr); }
-            nav { gap: 15px; padding: 10px 5%; }
+        .dropdown-item {
+            color: #bbb !important;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .dropdown-item:hover {
+            background-color: #e50914 !important;
+            color: white !important;
+            transform: translateX(5px);
+        }
+
+        /* Xử lý hiển thị trên Mobile */
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                background: #111;
+                padding: 20px;
+                border-radius: 12px;
+                margin-top: 15px;
+                border: 1px solid #333;
+            }
+            .dropdown-menu {
+                background: transparent !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+            .dropdown-item:hover { transform: none; }
         }
     </style>
 </div>
