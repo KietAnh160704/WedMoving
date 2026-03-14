@@ -108,6 +108,38 @@
             .movie-info { padding: 8px; }
             .movie-title { font-size: 0.8rem; height: 2.4rem; }
         }
+
+        .badge-status {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #e50914;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .badge-year {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffc107;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            z-index: 10;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Đảm bảo movie-card có position relative để badge bám vào đúng chỗ */
+        .movie-card {
+            position: relative !important;
+        }
     </style>
 </head>
 <body>
@@ -120,13 +152,18 @@
     <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-3 g-md-4">
         <div class="col" th:each="movie : ${movies}">
             <a th:href="@{/phim/{slug}(slug=${movie.slug})}" class="text-decoration-none">
-                <div class="movie-card">
+                <div class="movie-card position-relative">
+            <span class="badge-status"
+                  th:text="${movie?.episode_current ?: 'Đang cập nhật'}"></span>
+
+                    <span class="badge-year"
+                          th:text="${movie?.year}"></span>
+
                     <div class="movie-img-container">
-                        <span class="badge-status">Vietsub</span>
                         <img th:src="${'https://img.ophim.live/uploads/movies/' + movie.thumb_url}"
-                             th:alt="${movie.name}"
-                             loading="lazy">
+                             th:alt="${movie.name}" loading="lazy">
                     </div>
+
                     <div class="movie-info text-center">
                         <div class="movie-title" th:text="${movie.name}"></div>
                     </div>

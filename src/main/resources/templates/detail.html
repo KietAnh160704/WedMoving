@@ -129,9 +129,22 @@
                 <p class="fs-5 text-secondary fw-light mb-4" th:text="${movie?.origin_name}"></p>
 
                 <div class="meta-wrapper mb-4">
+                    <span class="movie-meta-item">
+                        <i class="fas fa-calendar-alt me-1 text-danger"></i>
+                        Năm: <th:block th:text="${movie?.year}"></th:block>
+                    </span>
+
+                    <span class="movie-meta-item">
+                        <i class="fas fa-signal me-1 text-danger"></i>
+                        Trạng thái: <th:block th:text="${movie?.episode_current}"></th:block>
+                    </span>
+
+                    <span class="movie-meta-item">
+                        <i class="fas fa-language me-1 text-danger"></i>
+                        <th:block th:text="${movie?.lang}"></th:block>
+                    </span>
+
                     <span class="movie-meta-item" th:each="cat : ${movie?.category}" th:text="${cat.name}"></span>
-                    <span class="movie-meta-item"><i class="far fa-calendar-alt me-1"></i> <th:block th:text="${movie?.year}"></th:block></span>
-                    <span class="movie-meta-item text-warning fw-bold"><i class="fas fa-star me-1"></i> <th:block th:text="${movie?.quality}"></th:block></span>
                 </div>
 
                 <div class="content-summary mb-5">

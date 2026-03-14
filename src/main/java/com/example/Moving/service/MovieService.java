@@ -88,4 +88,14 @@ public class MovieService {
                 .retrieve()
                 .bodyToMono(CategoryResponse.class);
     }
+
+    public Mono<MovieResponse> getMoviesByCountry(String countrySlug, int page) {
+        return this.webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/v1/api/quoc-gia/" + countrySlug)
+                        .queryParam("page", page)
+                        .build())
+                .retrieve()
+                .bodyToMono(MovieResponse.class);
+    }
 }

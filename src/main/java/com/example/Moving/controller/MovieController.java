@@ -40,6 +40,25 @@ public class MovieController {
                 model.addAttribute("currentPage", page);
             }
         }
+
+        MovieResponse vnResponse = movieService.getMoviesByCountry("viet-nam", 1).block();
+
+        if (response != null && response.getData() != null) {
+            model.addAttribute("movies", response.getData().getItems());
+
+            // Gửi dữ liệu phân trang cho hàng phim chính
+            if (response.getData().getParams() != null && response.getData().getParams().getPagination() != null) {
+                model.addAttribute("currentPage", response.getData().getParams().getPagination().getCurrentPage());
+            } else {
+                model.addAttribute("currentPage", page);
+            }
+        }
+
+        // 3. Gửi danh sách phim Việt Nam sang Model
+        if (vnResponse != null && vnResponse.getData() != null) {
+            model.addAttribute("moviesVN", vnResponse.getData().getItems());
+        }
+
         return "index";
     }
 

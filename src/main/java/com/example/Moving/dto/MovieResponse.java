@@ -38,5 +38,8 @@ public class MovieResponse {
         private String slug;
         private String thumb_url;
         private int year;
+        private String episode_current; // Ví dụ: "Tập 10" hoặc "Full"
+        private String quality;         // Ví dụ: "HD" hoặc "FHD"
+        private String lang;
     }
 }
