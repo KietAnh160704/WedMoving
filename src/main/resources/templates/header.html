@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <div th:fragment="moving-header">
     <nav style="background: #000; padding: 15px 5%; display: flex; align-items: center; gap: 30px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #333;">
-        <a href="/" style="color: #e50914; font-size: 26px; font-weight: bold; text-decoration: none;">MOVING</a>
+        <a href="/" style="color: #e50914; font-size: 26px; font-weight: bold; text-decoration: none; transition: 0.3s;" onmouseover="this.style.textShadow='0 0 10px #e50914'" onmouseout="this.style.textShadow='none'">MOVING</a>
 
         <div style="display: flex; gap: 25px; align-items: center;">
             <a href="/filter/danh-sach/phim-moi" style="color: #ccc; text-decoration: none; font-size: 14px;">Phim Mới</a>
@@ -10,18 +10,14 @@
             <div class="dropdown">
                 <span style="color: #ccc; cursor: pointer; font-size: 14px;">Thể Loại ▾</span>
                 <div class="dropdown-content">
-                    <a th:each="g : ${allGenres}"
-                       th:href="@{/filter/the-loai/{slug}(slug=${g.slug})}"
-                       th:text="${g.name}"></a>
+                    <a th:each="g : ${allGenres}" th:href="@{/filter/the-loai/{slug}(slug=${g.slug})}" th:text="${g.name}"></a>
                 </div>
             </div>
 
             <div class="dropdown">
                 <span style="color: #ccc; cursor: pointer; font-size: 14px;">Quốc Gia ▾</span>
                 <div class="dropdown-content">
-                    <a th:each="c : ${allCountries}"
-                       th:href="@{/filter/quoc-gia/{slug}(slug=${c.slug})}"
-                       th:text="${c.name}"></a>
+                    <a th:each="c : ${allCountries}" th:href="@{/filter/quoc-gia/{slug}(slug=${c.slug})}" th:text="${c.name}"></a>
                 </div>
             </div>
         </div>
@@ -41,12 +37,13 @@
             grid-template-columns: repeat(3, 1fr); gap: 10px;
         }
         .dropdown:hover .dropdown-content { display: grid; }
-        .dropdown-content a {
-            color: #ccc !important; padding: 8px; text-decoration: none;
-            font-size: 13px; border-radius: 4px; transition: 0.2s;
-        }
+        .dropdown-content a { color: #ccc !important; padding: 8px; text-decoration: none; font-size: 13px; border-radius: 4px; transition: 0.2s; }
         .dropdown-content a:hover { background-color: #e50914 !important; color: white !important; }
         nav a:hover { color: #e50914 !important; transition: 0.3s; }
+        @media (max-width: 768px) {
+            .dropdown-content { width: 280px; grid-template-columns: repeat(2, 1fr); }
+            nav { gap: 15px; padding: 10px 5%; }
+        }
     </style>
 </div>
 </html>

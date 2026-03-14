@@ -9,23 +9,33 @@ public class MovieDetailResponse {
 
     @Data
     public static class MovieDetailData {
-        private MovieItem item; // Trang chi tiết trả về 1 item duy nhất
+        private MovieItem item;
     }
 
     @Data
     public static class MovieItem {
         private String name;
+        private String origin_name; // Fix lỗi origin_name
         private String slug;
         private String content;
         private String thumb_url;
-        private String poster_url;
-        private int year;    // THÊM DÒNG NÀY
-        private String time;   // Thêm luôn cái này cho đủ bộ
+        private int year;
+        private String time;
         private String quality;
         private String lang;
-        private List<EpisodeServer> episodes;
-        private String episode_total;   // Tổng số tập (ví dụ: 24 tập)
         private String episode_current;
+        private String episode_total;
+        private List<CategoryItem> category; // Đổi từ genres sang category cho đúng API
+        private List<CategoryItem> country;
+        private List<String> actor;
+        private List<String> director;
+        private List<EpisodeServer> episodes; // Danh sách Server (Vietsub, Lồng tiếng)
+    }
+
+    @Data
+    public static class CategoryItem {
+        private String name;
+        private String slug;
     }
 
     @Data
@@ -38,9 +48,6 @@ public class MovieDetailResponse {
     public static class ServerData {
         private String name;
         private String slug;
-        private String link_m3u8;
         private String link_embed;
     }
-
-
 }

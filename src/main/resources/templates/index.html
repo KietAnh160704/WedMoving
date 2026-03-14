@@ -1,75 +1,161 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Moving - Xem Phim Mới</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moving - Xem Phim Online</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        body { background-color: #141414; color: white; font-family: sans-serif; margin: 0; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
-        .movie-card { background: #222; border-radius: 8px; overflow: hidden; transition: transform 0.3s; }
-        .movie-card:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(229,9,20,0.4); }
-        .movie-card img { width: 100%; height: 300px; object-fit: cover; }
-        .movie-info { padding: 10px; }
-        .movie-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+        :root {
+            --netflix-red: #e50914;
+            --bg-dark: #141414;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Be Vietnam Pro', sans-serif;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--netflix-red);
+            padding-left: 15px;
+        }
+
+        /* Movie Card Nâng Cấp */
+        .movie-card {
+            background: #222;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            border: 1px solid #333;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            border-color: #555;
+        }
+
+        .movie-img-container {
+            position: relative;
+            aspect-ratio: 2/3;
+            overflow: hidden;
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .movie-info {
+            padding: 10px;
+        }
+
+        .movie-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            height: 2.8rem; /* Giới hạn 2 dòng */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        /* Badge lơ lửng */
+        .badge-status {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--netflix-red);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* Tối ưu Pagination */
+        .pagination .page-link {
+            background-color: #222;
+            border-color: #444;
+            color: white;
+            padding: 0.5rem 1rem;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--netflix-red);
+            border-color: var(--netflix-red);
+        }
+
+        .pagination .page-link:hover {
+            background-color: #333;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 576px) {
+            .section-title { font-size: 1.2rem; }
+            .movie-info { padding: 8px; }
+            .movie-title { font-size: 0.8rem; height: 2.4rem; }
+        }
     </style>
 </head>
 <body>
 
-<nav th:fragment="nav" style="background: #000; padding: 15px 5%; display: flex; align-items: center; gap: 30px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #333;">
-    <style>
-        .dropdown { position: relative; }
-        .dropdown-content {
-            display: none; position: absolute; background: #1a1a1a;
-            width: 550px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 9999;
-            padding: 15px; border-radius: 8px; top: 100%; left: 0;
-            grid-template-columns: repeat(3, 1fr); gap: 10px;
-        }
-        .dropdown:hover .dropdown-content { display: grid; }
-        .dropdown-content a {
-            color: #ccc !important; padding: 8px 12px; text-decoration: none;
-            font-size: 13px; border-radius: 4px; display: block;
-        }
-        .dropdown-content a:hover { background-color: #e50914 !important; color: white !important; }
-        nav a:hover { color: #e50914 !important; transition: 0.3s; }
-    </style>
+<div th:replace="~{header :: moving-header}"></div>
 
-    <a href="/" style="color: #e50914; font-size: 26px; font-weight: bold; text-decoration: none;">MOVING</a>
+<div class="container my-4">
+    <h1 class="section-title" th:text="${title != null ? title : 'Phim Mới Cập Nhật'}"></h1>
 
-    <div style="display: flex; gap: 25px; align-items: center;">
-        <a href="/filter/danh-sach/phim-moi" style="color: #ccc; text-decoration: none;">Phim Mới</a>
-
-        <div class="dropdown">
-            <span style="color: #ccc; cursor: pointer;">Thể Loại ▾</span>
-            <div class="dropdown-content">
-                <a th:each="g : ${allGenres}" th:href="@{/filter/the-loai/{slug}(slug=${g.slug})}" th:text="${g.name}"></a>
-            </div>
-        </div>
-
-        <div class="dropdown">
-            <span style="color: #ccc; cursor: pointer;">Quốc Gia ▾</span>
-            <div class="dropdown-content">
-                <a th:each="c : ${allCountries}" th:href="@{/filter/quoc-gia/{slug}(slug=${c.slug})}" th:text="${c.name}"></a>
-            </div>
-        </div>
-    </div>
-
-    <form action="/search" method="get" style="margin-left: auto;">
-        <input type="text" name="keyword" placeholder="Tìm phim..." style="padding: 8px 15px; border-radius: 20px; border: none; background: #222; color: white; outline: none; width: 180px;">
-    </form>
-</nav>
-
-<div class="container">
-    <h1 th:text="${title != null ? title : 'Phim Mới Cập Nhật'}"></h1>
-    <div class="movie-grid">
-        <div class="movie-card" th:each="movie : ${movies}">
-            <a th:href="@{/phim/{slug}(slug=${movie.slug})}" style="text-decoration: none; color: inherit;">
-                <img th:src="${'https://img.ophim.live/uploads/movies/' + movie.thumb_url}" alt="poster">
-                <div class="movie-info">
-                    <div class="movie-title" th:text="${movie.name}"></div>
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-3 g-md-4">
+        <div class="col" th:each="movie : ${movies}">
+            <a th:href="@{/phim/{slug}(slug=${movie.slug})}" class="text-decoration-none">
+                <div class="movie-card">
+                    <div class="movie-img-container">
+                        <span class="badge-status">Vietsub</span>
+                        <img th:src="${'https://img.ophim.live/uploads/movies/' + movie.thumb_url}"
+                             th:alt="${movie.name}"
+                             loading="lazy">
+                    </div>
+                    <div class="movie-info text-center">
+                        <div class="movie-title" th:text="${movie.name}"></div>
+                    </div>
                 </div>
             </a>
         </div>
     </div>
+
+    <nav class="mt-5" aria-label="Page navigation" th:if="${currentPage != null}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                <a class="page-link" th:href="${currentCategory != null} ? @{/filter/{cat}/{slug}(cat=${currentCategory}, slug=${currentSlug}, page=${currentPage - 1})} : @{/(page=${currentPage - 1})}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+
+            <li class="page-item active">
+                <span class="page-link" th:text="${currentPage}"></span>
+            </li>
+
+            <li class="page-item">
+                <a class="page-link" th:href="${currentCategory != null} ? @{/filter/{cat}/{slug}(cat=${currentCategory}, slug=${currentSlug}, page=${currentPage + 1})} : @{/(page=${currentPage + 1})}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

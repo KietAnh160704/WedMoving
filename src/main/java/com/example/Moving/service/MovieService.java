@@ -6,10 +6,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import com.example.Moving.dto.MovieDetailResponse;
 import com.example.Moving.dto.MoviePeoplesResponse;
-import org.springframework.core.ParameterizedTypeReference; // Fix lỗi ParameterizedTypeReference
-import java.util.List; // Fix lỗi List
-import com.example.Moving.dto.CategoryResponse.CategoryItem; // Fix lỗi CategoryItem (lấy từ inner class của DTO)
-import reactor.core.publisher.Mono;
 import com.example.Moving.dto.CategoryResponse;
 
 @Service
@@ -22,9 +18,12 @@ public class MovieService {
     }
 
     // Lấy danh sách phim mới cập nhật
-    public Mono<MovieResponse> getHomeData() {
+    public Mono<MovieResponse> getHomeData(int page) { // Thêm tham số int page ở đây
         return this.webClient.get()
-                .uri("/v1/api/home") // Đúng thứ tự v1 rồi đến api
+                .uri(uriBuilder -> uriBuilder
+                        .path("/v1/api/danh-sach/phim-moi-cap-nhat")
+                        .queryParam("page", page) // Truyền page lên API OPhim
+                        .build())
                 .retrieve()
                 .bodyToMono(MovieResponse.class);
     }
@@ -55,8 +54,7 @@ public class MovieService {
         return this.webClient.get()
                 .uri("/v1/api/phim/" + slug + "/peoples")
                 .retrieve()
-                .bodyToMono(MoviePeoplesResponse.class)
-                .onErrorResume(e -> Mono.empty()); // Nếu API OPhim sập (500), trả về Mono trống
+                .bodyToMono(MoviePeoplesResponse.class);
     }
 
     // Lấy danh sách thể loại để hiện lên Menu
@@ -65,10 +63,12 @@ public class MovieService {
     }
 
     // Lấy phim theo tiêu chí bất kỳ (thể loại, quốc gia, năm)
-    public Mono<MovieResponse> getMoviesByFilter(String category, String slug) {
-        // category có thể là 'the-loai', 'quoc-gia', 'danh-sach', 'nam-phat-hanh'
+    public Mono<MovieResponse> getMoviesByFilter(String category, String slug, int page) {
         return this.webClient.get()
-                .uri("/v1/api/" + category + "/" + slug)
+                .uri(uriBuilder -> uriBuilder
+                        .path("/v1/api/" + category + "/" + slug)
+                        .queryParam("page", page) // Thêm page vào đây
+                        .build())
                 .retrieve()
                 .bodyToMono(MovieResponse.class);
     }
@@ -78,9 +78,10 @@ public class MovieService {
         return this.webClient.get()
                 .uri("/v1/api/the-loai")
                 .retrieve()
-                .bodyToMono(CategoryResponse.class); // Trả về cả Object CategoryResponse
+                .bodyToMono(CategoryResponse.class);
     }
 
+    // Lấy danh sách quốc gia chuẩn DTO CategoryResponse
     public Mono<CategoryResponse> getCountries() {
         return this.webClient.get()
                 .uri("/v1/api/quoc-gia")

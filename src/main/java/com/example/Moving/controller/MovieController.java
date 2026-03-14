@@ -23,10 +23,22 @@ public class MovieController {
     }
 
     @GetMapping("/")
-    public String getIndex(Model model) {
-        MovieResponse response = movieService.getHomeData().block();
+    public String getIndex(@RequestParam(defaultValue = "1") int page, Model model) {
+        // 1. Gọi service và truyền số page vào (Nhớ sửa service nhận int page như mình hướng dẫn nhé)
+        MovieResponse response = movieService.getHomeData(page).block();
+
         if (response != null && response.getData() != null) {
+            // 2. Gửi danh sách phim
             model.addAttribute("movies", response.getData().getItems());
+
+            // 3. Lấy số trang hiện tại từ API gửi sang HTML
+            if (response.getData().getParams() != null && response.getData().getParams().getPagination() != null) {
+                int currentPage = response.getData().getParams().getPagination().getCurrentPage();
+                model.addAttribute("currentPage", currentPage);
+            } else {
+                // Nếu API không trả về params, mặc định là trang hiện tại Kiệt đang yêu cầu
+                model.addAttribute("currentPage", page);
+            }
         }
         return "index";
     }
@@ -75,39 +87,63 @@ public class MovieController {
     // --- TRANG XEM PHIM ---
     @GetMapping("/xem-phim/{slug}")
     public String watchMovie(@PathVariable String slug,
-                             @RequestParam(required = false) String ep,
+                             @RequestParam(defaultValue = "1") String ep,
+                             @RequestParam(defaultValue = "0") int sv,
                              Model model) {
-        MovieDetailResponse detail = movieService.getDetail(slug).block();
-        MoviePeoplesResponse peoples = movieService.getPeoples(slug).block();
+        try {
+            MovieDetailResponse response = movieService.getDetail(slug).block();
+            if (response != null && response.getData() != null) {
+                var movie = response.getData().getItem();
+                model.addAttribute("movie", movie);
+                model.addAttribute("selectedSv", sv);
+                model.addAttribute("currentEpSlug", ep);
 
-        if (detail != null && detail.getData() != null) {
-            var item = detail.getData().getItem();
-            model.addAttribute("movie", item);
+                // Lấy server được chọn
+                var currentServer = movie.getEpisodes().get(sv);
+                model.addAttribute("currentServer", currentServer);
 
-            // Logic lấy tập phim
-            var servers = item.getEpisodes().get(0).getServer_data();
-            var currentEp = servers.stream()
-                    .filter(e -> e.getSlug().equals(ep))
-                    .findFirst()
-                    .orElse(servers.get(0));
+                // Lấy tập phim trong server đó
+                var episodeData = currentServer.getServer_data().stream()
+                        .filter(e -> e.getSlug().equals(ep))
+                        .findFirst()
+                        .orElse(currentServer.getServer_data().get(0));
 
-            model.addAttribute("currentLink", currentEp.getLink_embed());
-            model.addAttribute("currentEpSlug", currentEp.getSlug());
-
-            if (peoples != null && peoples.getData() != null) {
-                model.addAttribute("actors", peoples.getData().getPeoples());
+                model.addAttribute("currentLink", episodeData.getLink_embed());
             }
-            return "watch"; // Trả về trang watch.html
+        } catch (Exception e) {
+            return "redirect:/";
         }
-        return "error";
+        return "watch";
     }
 
-    @GetMapping("/filter/{type}/{slug}")
-    public String filter(@PathVariable String type, @PathVariable String slug, Model model) {
-        MovieResponse response = movieService.getMoviesByFilter(type, slug).block();
-        if (response != null && response.getData() != null) {
-            model.addAttribute("movies", response.getData().getItems());
-            model.addAttribute("title", "Kết quả cho: " + slug);
+    @GetMapping("/filter/{category}/{slug}")
+    public String filterMovies(@PathVariable String category,
+                               @PathVariable String slug,
+                               @RequestParam(defaultValue = "1") int page,
+                               Model model) {
+        try {
+            // Truyền đủ 3 tham số
+            MovieResponse response = movieService.getMoviesByFilter(category, slug, page).block();
+
+            if (response != null && response.getData() != null) {
+                model.addAttribute("movies", response.getData().getItems());
+
+                // Lấy Title an toàn
+                var params = response.getData().getParams();
+                if (params != null) {
+                    model.addAttribute("title", params.getTitle());
+                    if (params.getPagination() != null) {
+                        model.addAttribute("currentPage", params.getPagination().getCurrentPage());
+                    }
+                }
+
+                // Gửi dữ liệu để nút Phân trang biết đường mà tạo link
+                model.addAttribute("currentCategory", category);
+                model.addAttribute("currentSlug", slug);
+            }
+        } catch (Exception e) {
+            model.addAttribute("movies", Collections.emptyList());
+            model.addAttribute("currentPage", 1);
         }
         return "index";
     }
