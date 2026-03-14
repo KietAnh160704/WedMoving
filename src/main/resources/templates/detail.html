@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${movie.name} + ' - Moving'"></title>
+    <style>
+        body { background-color: #0a0a0a; color: white; font-family: sans-serif; margin: 0; }
+        .backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            filter: blur(25px) brightness(0.2); z-index: -1;
+        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 50px 20px; display: flex; gap: 40px; }
+        .poster img { width: 320px; border-radius: 12px; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        .info { flex: 1; }
+        .info h1 { font-size: 3.5rem; color: #e50914; margin: 0; }
+        .meta { margin: 20px 0; display: flex; gap: 10px; }
+        .meta span { background: #222; padding: 5px 12px; border-radius: 4px; font-size: 0.9rem; }
+        .description { line-height: 1.8; color: #ccc; margin-bottom: 30px; }
+        .btn-watch {
+            display: inline-block; padding: 15px 40px; background: #e50914;
+            color: white; text-decoration: none; font-weight: bold; border-radius: 5px;
+        }
+        .actor-pill { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; margin: 0 8px 8px 0; display: inline-block; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+<div th:replace="~{index :: nav}"></div>
+
+<div class="backdrop" th:style="'background-image: url(\'https://img.ophim.live/uploads/movies/' + ${movie.thumb_url} + '\')'"></div>
+
+<div class="container">
+    <div class="poster">
+        <img th:src="${'https://img.ophim.live/uploads/movies/' + movie.thumb_url}" alt="poster">
+    </div>
+    <div class="info">
+        <h1 th:text="${movie.name}"></h1>
+        <div class="meta">
+            <span style="color: #00df00; border-color: #00df00;"
+                  th:text="'Trạng thái: ' + ${movie.episode_current}"></span>
+            <span th:if="${movie.episode_total != null}"
+                  th:text="'Tổng: ' + ${movie.episode_total}"></span>
+            <span th:text="${movie.year}"></span>
+            <span th:text="${movie.quality}"></span>
+            <span th:text="${movie.lang}"></span>
+        </div>
+        <div class="description" th:utext="${movie.content}"></div>
+
+        <h3>Diễn viên</h3>
+        <div class="actors">
+            <div class="actor-pill" th:each="a : ${actors}" th:text="${a.name}"></div>
+            <span th:if="${#lists.isEmpty(actors)}" style="color: #666;">Đang cập nhật...</span>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <a th:href="@{/xem-phim/{slug}(slug=${movie.slug})}" class="btn-watch">▶ XEM PHIM NGAY</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

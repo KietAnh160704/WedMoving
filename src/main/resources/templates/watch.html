@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="'Đang xem: ' + ${movie.name} + ' - Moving'"></title>
+  <style>
+    body { background-color: #0a0a0a; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+
+    /* Video Player */
+    .player-wrapper {
+        position: relative; padding-bottom: 56.25%; height: 0;
+        background: #000; border-radius: 12px; overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.9); border: 1px solid #222;
+    }
+    .player-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+    /* Movie Header */
+    .movie-header { margin-top: 30px; border-bottom: 1px solid #222; padding-bottom: 20px; }
+    .movie-title { font-size: 2.2rem; margin: 0; color: #e50914; font-weight: bold; }
+    .movie-content { color: #aaa; line-height: 1.7; margin-top: 15px; font-size: 1rem; }
+
+    /* Episodes Section */
+    .episodes-section { margin-top: 30px; }
+    .episodes-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+    .btn-ep {
+        padding: 8px 18px; background: #1a1a1a; color: #ccc;
+        text-decoration: none; border-radius: 4px; font-size: 0.9rem;
+        border: 1px solid #333; transition: 0.3s;
+    }
+    .btn-ep:hover { background: #333; color: #fff; border-color: #e50914; }
+    .btn-ep.active { background: #e50914; color: #fff; border-color: #e50914; font-weight: bold; box-shadow: 0 0 15px rgba(229, 9, 20, 0.4); }
+
+    /* Actors */
+    .actor-pill {
+        background: rgba(255,255,255,0.05); color: #888; padding: 4px 12px;
+        border-radius: 20px; font-size: 0.85rem; border: 1px solid #222; display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+<div th:replace="~{index :: nav}"></div>
+
+<div class="container">
+  <a th:href="@{/phim/{slug}(slug=${movie.slug})}"
+     style="display: inline-block; margin-bottom: 20px; color: #666; text-decoration: none; font-size: 0.9rem;">
+    ← Quay lại thông tin phim
+  </a>
+
+  <div class="player-wrapper">
+    <iframe th:src="${currentLink}" allowfullscreen></iframe>
+  </div>
+
+  <div class="movie-header">
+    <h1 class="movie-title" th:text="${movie.name}">Tên Phim</h1>
+    <div class="movie-content" th:utext="${movie.content}">Nội dung phim</div>
+  </div>
+
+  <div class="episodes-section">
+    <h3 style="font-size: 1.2rem; margin-bottom: 15px;">Chọn tập phim:</h3>
+    <div class="episodes-grid">
+      <a th:each="ep : ${movie.episodes[0].server_data}"
+         th:href="@{/xem-phim/{slug}(slug=${movie.slug}, ep=${ep.slug})}"
+         th:text="${ep.name}"
+         th:classappend="${ep.slug == currentEpSlug} ? 'active' : ''"
+         class="btn-ep">
+      </a>
+    </div>
+  </div>
+
+  <div class="actors-section" style="margin-top: 30px;">
+    <h3 style="font-size: 1.1rem; color: #444; margin-bottom: 12px;">Diễn viên:</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <span class="actor-pill" th:each="actor : ${actors}" th:text="${actor.name}"></span>
+      <span th:if="${#lists.isEmpty(actors)}" style="color: #444; font-style: italic; font-size: 0.9rem;">Đang cập nhật...</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
