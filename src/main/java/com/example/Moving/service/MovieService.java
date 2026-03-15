@@ -1,12 +1,10 @@
 package com.example.Moving.service;
 
-import com.example.Moving.dto.MovieResponse;
+import com.example.Moving.dto.*;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import com.example.Moving.dto.MovieDetailResponse;
-import com.example.Moving.dto.MoviePeoplesResponse;
-import com.example.Moving.dto.CategoryResponse;
 
 @Service
 public class MovieService {
@@ -18,6 +16,7 @@ public class MovieService {
     }
 
     // Lấy danh sách phim mới cập nhật
+    @Cacheable(value = "moviesHome", key = "#page")
     public Mono<MovieResponse> getHomeData(int page) { // Thêm tham số int page ở đây
         return this.webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -37,6 +36,7 @@ public class MovieService {
                 .bodyToMono(MovieResponse.class);
     }
 
+    @Cacheable(value = "movieDetail", key = "#slug")
     public Mono<MovieDetailResponse> getDetail(String slug) { // Sửa kiểu trả về ở đây
         return this.webClient.get()
                 .uri("/v1/api/phim/" + slug)
