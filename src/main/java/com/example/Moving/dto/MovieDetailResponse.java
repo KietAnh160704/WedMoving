@@ -1,5 +1,6 @@
 package com.example.Moving.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import java.io.Serializable;
 import java.util.List;
@@ -7,12 +8,44 @@ import java.util.List;
 @Data
 public class MovieDetailResponse implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    // SỬA TẠI ĐÂY: Dùng Object để nhận cả String "success" và Boolean true/false
+    private Object status;
+    private String msg;
+
     private MovieDetailData data;
+
+    @JsonProperty("movie")
+    private MovieItem movieKK;
+
+    @JsonProperty("episodes")
+    private List<EpisodeServer> episodesKK;
+
+    // Hàm kiểm tra thành công thông minh
+    public boolean isSuccess() {
+        if (status instanceof Boolean) return (Boolean) status;
+        if (status instanceof String) {
+            return "success".equalsIgnoreCase((String) status) || "true".equalsIgnoreCase((String) status);
+        }
+        return false;
+    }
 
     @Data
     public static class MovieDetailData implements Serializable {
         private static final long serialVersionUID = 1L;
         private MovieItem item;
+    }
+
+    public MovieItem getActualItem() {
+        if (movieKK != null) return movieKK;
+        if (data != null) return data.getItem();
+        return null;
+    }
+
+    public List<EpisodeServer> getActualEpisodes() {
+        if (episodesKK != null) return episodesKK;
+        if (getActualItem() != null) return getActualItem().getEpisodes();
+        return null;
     }
 
     @Data
@@ -23,6 +56,7 @@ public class MovieDetailResponse implements Serializable {
         private String slug;
         private String content;
         private String thumb_url;
+        private String poster_url;
         private int year;
         private String time;
         private String quality;
@@ -34,6 +68,12 @@ public class MovieDetailResponse implements Serializable {
         private List<String> actor;
         private List<String> director;
         private List<EpisodeServer> episodes;
+
+        public String getPosterFull() {
+            if (thumb_url != null && thumb_url.startsWith("http")) return thumb_url;
+            if (poster_url != null && poster_url.startsWith("http")) return poster_url;
+            return "https://img.ophim.live/uploads/movies/" + thumb_url;
+        }
     }
 
     @Data

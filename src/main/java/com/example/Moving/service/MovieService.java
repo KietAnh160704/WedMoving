@@ -2,100 +2,71 @@ package com.example.Moving.service;
 
 import com.example.Moving.dto.*;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Service
 public class MovieService {
-
     private final WebClient webClient;
+    private final String OPHIM_BASE = "https://ophim1.com";
+    private final String KKPHIM_BASE = "https://kkphim.vip";
 
-    public MovieService(WebClient webClient) {
-        this.webClient = webClient;
+    public MovieService(WebClient.Builder builder) {
+        this.webClient = builder
+                .defaultHeader(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+                .defaultHeader(HttpHeaders.REFERER, "https://ophim1.com/")
+                .build();
     }
 
-    // Lấy danh sách phim mới cập nhật
-    @Cacheable(value = "moviesHome", key = "#page")
-    public Mono<MovieResponse> getHomeData(int page) { // Thêm tham số int page ở đây
+    private String getBaseUrl(String source) {
+        return "kkphim".equalsIgnoreCase(source) ? KKPHIM_BASE : OPHIM_BASE;
+    }
+
+    public Mono<MovieResponse> getHomeData(int page) {
+        return webClient.get().uri(OPHIM_BASE + "/v1/api/danh-sach/phim-moi-cap-nhat?page=" + page).retrieve().bodyToMono(MovieResponse.class);
+    }
+
+    // Fix lỗi getDetail: nhận 2 tham số slug và source
+    public Mono<MovieDetailResponse> getDetail(String slug, String source) {
+        String finalUrl;
+
+        if ("kkphim".equalsIgnoreCase(source)) {
+            // Theo ảnh: https://phimapi.com/phim/{slug}
+            finalUrl = "https://phimapi.com/phim/" + slug;
+        } else {
+            // Theo OPhim: https://ophim1.com/v1/api/phim/{slug}
+            finalUrl = "https://ophim1.com/v1/api/phim/" + slug;
+        }
+
         return this.webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/v1/api/danh-sach/phim-moi-cap-nhat")
-                        .queryParam("page", page) // Truyền page lên API OPhim
-                        .build())
+                .uri(finalUrl)
+                .header(HttpHeaders.USER_AGENT, "Mozilla/5.0 ...")
                 .retrieve()
-                .bodyToMono(MovieResponse.class);
-    }
-    public Mono<MovieResponse> searchMovies(String keyword) {
-        return this.webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/v1/api/tim-kiem")
-                        .queryParam("keyword", keyword)
-                        .build())
-                .retrieve()
-                .bodyToMono(MovieResponse.class);
+                .onStatus(status -> status.isError(), response -> Mono.empty())
+                .bodyToMono(MovieDetailResponse.class)
+                .onErrorResume(e -> Mono.empty());
     }
 
-    @Cacheable(value = "movieDetail", key = "#slug")
-    public Mono<MovieDetailResponse> getDetail(String slug) { // Sửa kiểu trả về ở đây
-        return this.webClient.get()
-                .uri("/v1/api/phim/" + slug)
-                .retrieve()
-                .bodyToMono(MovieDetailResponse.class); // Sửa class hứng ở đây
+    // Fix lỗi getMoviesByFilter: nhận thêm tham số source
+    public Mono<MovieResponse> getMoviesByFilter(String category, String slug, int page, String source) {
+        String path = "kkphim".equalsIgnoreCase(source) ? "/v1/api/danh-sach/" : "/v1/api/";
+        return webClient.get().uri(getBaseUrl(source) + path + category + "/" + slug + "?page=" + page).retrieve().bodyToMono(MovieResponse.class);
     }
 
-    // 2. Hình ảnh phim (Backdrop, Still)
-    public Mono<String> getImages(String slug) {
-        return webClient.get().uri("/v1/api/phim/" + slug + "/images").retrieve().bodyToMono(String.class);
-    }
-
-
-    public Mono<MoviePeoplesResponse> getPeoples(String slug) {
-        return this.webClient.get()
-                .uri("/v1/api/phim/" + slug + "/peoples")
-                .retrieve()
-                .bodyToMono(MoviePeoplesResponse.class);
-    }
-
-    // Lấy danh sách thể loại để hiện lên Menu
-    public Mono<String> getAllGenres() {
-        return this.webClient.get().uri("/v1/api/the-loai").retrieve().bodyToMono(String.class);
-    }
-
-    // Lấy phim theo tiêu chí bất kỳ (thể loại, quốc gia, năm)
-    public Mono<MovieResponse> getMoviesByFilter(String category, String slug, int page) {
-        return this.webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/v1/api/" + category + "/" + slug)
-                        .queryParam("page", page) // Thêm page vào đây
-                        .build())
-                .retrieve()
-                .bodyToMono(MovieResponse.class);
-    }
-
-
-    public Mono<CategoryResponse> getGenres() {
-        return this.webClient.get()
-                .uri("/v1/api/the-loai")
-                .retrieve()
-                .bodyToMono(CategoryResponse.class);
-    }
-
-    // Lấy danh sách quốc gia chuẩn DTO CategoryResponse
-    public Mono<CategoryResponse> getCountries() {
-        return this.webClient.get()
-                .uri("/v1/api/quoc-gia")
-                .retrieve()
-                .bodyToMono(CategoryResponse.class);
-    }
-
+    // Fix lỗi getMoviesByCountry: Thêm hàm này vào Service
     public Mono<MovieResponse> getMoviesByCountry(String countrySlug, int page) {
-        return this.webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/v1/api/quoc-gia/" + countrySlug)
-                        .queryParam("page", page)
-                        .build())
-                .retrieve()
-                .bodyToMono(MovieResponse.class);
+        return webClient.get().uri(OPHIM_BASE + "/v1/api/quoc-gia/" + countrySlug + "?page=" + page).retrieve().bodyToMono(MovieResponse.class);
     }
+
+    // Fix lỗi getPeoples: Thêm hàm này vào Service
+    public Mono<MoviePeoplesResponse> getPeoples(String slug) {
+        return webClient.get().uri(OPHIM_BASE + "/v1/api/phim/" + slug + "/peoples").retrieve().bodyToMono(MoviePeoplesResponse.class)
+                .onErrorReturn(new MoviePeoplesResponse());
+    }
+
+    public Mono<CategoryResponse> getGenres() { return webClient.get().uri(OPHIM_BASE + "/v1/api/the-loai").retrieve().bodyToMono(CategoryResponse.class); }
+    public Mono<CategoryResponse> getCountries() { return webClient.get().uri(OPHIM_BASE + "/v1/api/quoc-gia").retrieve().bodyToMono(CategoryResponse.class); }
+    public Mono<MovieResponse> searchMovies(String keyword) { return webClient.get().uri(OPHIM_BASE + "/v1/api/tim-kiem?keyword=" + keyword).retrieve().bodyToMono(MovieResponse.class); }
 }
